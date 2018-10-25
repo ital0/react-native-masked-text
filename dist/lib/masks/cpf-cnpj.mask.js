@@ -1,5 +1,4 @@
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.validateCPF = exports.CPF_MASK = undefined;
 var _createClass = function () {
   function defineProperties(target, props) {
     for (var i = 0; i < props.length; i++) {
@@ -31,6 +30,8 @@ var _get = function get(object, property, receiver) {
 };
 var _base = require('./_base.mask');
 var _base2 = _interopRequireDefault(_base);
+var _cpf = require('./cpf.mask');
+var _cnpj = require('./cnpj.mask');
 
 function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}
 
@@ -54,92 +55,56 @@ function _inherits(subClass, superClass) {
   if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 }
 
-var CPF_MASK = exports.CPF_MASK = '999.999.999-99';
+var CPF_CNPJ = function (_BaseMask) {
+    _inherits(CPF_CNPJ, _BaseMask);
 
-var validateCPF = exports.validateCPF = function validateCPF(cpf) {
-  if (cpf == '') {
-    return true;
-  }
-
-  cpf = cpf.replace(/\./gi, '').replace(/-/gi, '');
-  var isValid = true;
-  var sum;
-  var rest;
-  var i;
-  i = 0;
-  sum = 0;
-
-  if (
-    cpf.length != 11 ||
-    cpf == '00000000000' ||
-    cpf == '11111111111' ||
-    cpf == '22222222222' ||
-    cpf == '33333333333' ||
-    cpf == '44444444444' ||
-    cpf == '55555555555' ||
-    cpf == '66666666666' ||
-    cpf == '77777777777' ||
-    cpf == '88888888888' ||
-    cpf == '99999999999') {
-    isValid = false;
-  }
-
-  for (i = 1; i <= 9; i++) {
-    sum = sum + parseInt(cpf.substring(i - 1, i)) * (11 - i);
-  }
-
-  rest = sum * 10 % 11;
-
-  if (rest == 10 || rest == 11) {
-    rest = 0;
-  }
-
-  if (rest != parseInt(cpf.substring(9, 10))) {
-    isValid = false;
-  }
-
-  sum = 0;
-
-  for (i = 1; i <= 10; i++) {
-    sum = sum + parseInt(cpf.substring(i - 1, i)) * (12 - i);
-  }
-
-  rest = sum * 10 % 11;
-
-  if (rest == 10 || rest == 11) {
-    rest = 0;
-  }
-  if (rest != parseInt(cpf.substring(10, 11))) {
-    isValid = false;
-  }
-
-  return isValid;
-};
-var CpfMask = function (_BaseMask) {
-    _inherits(CpfMask, _BaseMask);
-
-    function CpfMask() {
-      _classCallCheck(this, CpfMask);
-      return _possibleConstructorReturn(this, (CpfMask.__proto__ || Object.getPrototypeOf(CpfMask)).apply(this, arguments));
+    function CPF_CNPJ() {
+      _classCallCheck(this, CPF_CNPJ);
+      return _possibleConstructorReturn(this, (CPF_CNPJ.__proto__ || Object.getPrototypeOf(CPF_CNPJ)).apply(this, arguments));
     }
 
-    _createClass(CpfMask, [{
+    _createClass(CPF_CNPJ, [{
       key: 'getValue', value: function getValue(
         value, settings) {
-        return this.getVMasker().toPattern(value, CPF_MASK);
+        var length = this.getLength(value);
+        if (this.isCNPJ(length)) {
+          return this.getVMasker().toPattern(value, _cnpj.CNPJ_MASK);
+        }
+
+        return this.getVMasker().toPattern(value, _cpf.CPF_MASK);
       }
     }, {
       key: 'getRawValue', value: function getRawValue(
         maskedValue, settings) {
-        return _get(CpfMask.prototype.__proto__ || Object.getPrototypeOf(CpfMask.prototype), 'removeNotNumbers', this).call(this, maskedValue);
+        return _get(CPF_CNPJ.prototype.__proto__ || Object.getPrototypeOf(CPF_CNPJ.prototype), 'removeNotNumbers', this).call(this, maskedValue);
+      }
+    }, {
+      key: 'getLength', value: function getLength(
+        value) {
+        return (value || '').trim().replace(/[.\-/]/g, '').length;
+      }
+    }, {
+      key: 'isCNPJ', value: function isCNPJ(
+        length) {
+        return length > 11;
       }
     }, {
       key: 'validate', value: function validate(
         value, settings) {
-        var isEmpty = (value || '').trim().length === 0;
-        return !isEmpty && validateCPF(value);
+        var length = this.getLength(value);
+        var isEmpty = length === 0;
+
+        if (isEmpty) {
+          return false;
+        }
+
+        if (this.isCNPJ(length)) {
+          return (0, _cnpj.validateCnpj)(value);
+        }
+
+        return (0, _cpf.validateCPF)(value);
       }
-    }], [{ key: 'getType', value: function getType() {return 'cpf';} }]);
-    return CpfMask;
+    }], [{ key: 'getType', value: function getType() {return 'cpf-cnpj';} }]);
+    return CPF_CNPJ;
   }(_base2.default);
-exports.default = CpfMask;
+exports.default = CPF_CNPJ;
